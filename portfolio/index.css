@@ -1,0 +1,23 @@
+.container{
+    max-width:1500px;
+    margin:0px;
+}
+
+body li{
+    list-style:none;
+}
+
+.head{
+    height:400px;
+    background-image:url(書斎.jpg);
+    background-size:cover;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:0 auto;
+    color:white;
+}
+
+.head ul{
+    display:flex;
+}
