@@ -8,6 +8,8 @@ class StopWatch{
         const display = document.getElementsByClassName("display")[0];
         const stopButton = document.getElementsByClassName("stopButton")[0];
         const log = document.getElementsByClassName("log")[0];
+        const firstlog = document.getElementsByClassName("firstlog")[0];
+
         let timer = null;
         let {color,backgroundColor} = this.option;
 
@@ -24,6 +26,7 @@ class StopWatch{
                 seconds++;
                 display.innerText = seconds;
             },1000);
+            startButton.className = "stop";
             addMessager("開始");
             }
         });
@@ -32,6 +35,7 @@ class StopWatch{
             if(timer!==null){
             clearInterval(timer);
             timer = null;
+            startButton.className = "actions";
             addMessager("終了");
             }
         });
@@ -39,7 +43,9 @@ class StopWatch{
         function addMessager(message){
             const logtext = document.createElement("div");
             const now = new Date();
-            logtext.classList = ["message"];
+            firstlog.classList.add("firstmessage");
+            logtext.classList.add("message");
+            firstlog.innerText= `${now.getHours()}時${now.getMinutes()}分${now.getSeconds()}秒 ${message}`;
             logtext.innerText = `${now.getHours()}時${now.getMinutes()}分${now.getSeconds()}秒 ${message}`;
             log.appendChild(logtext);
         }

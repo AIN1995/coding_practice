@@ -22,7 +22,20 @@
     margin-bottom: 1em;
 }
 
+.firstmessage {
+    text-align:center;
+    color:red;
+    border-bottom:3px solid black;
+}
+
 .message{
     text-align:center;
     border-bottom:1px solid lightblue;
 }
+
+.stop {
+    display:none;
+    text-align:center;
+    margin-bottom: 1em;
+}
+
