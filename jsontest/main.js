@@ -1,9 +1,9 @@
 class AreaSelector {
     constructor(rootElm) {
         this.rootElm = rootElm;
-        this.prefectures = [];
-        this.cities = [];
-        this.prefCode = null;
+        this.Preflist = [];
+        this.Citylist = [];
+        this.PrefCode = null;
     }
 
     async init() {
@@ -11,51 +11,51 @@ class AreaSelector {
         await this.updateCity();
     }
 
-    async getPrefs() {
-        const prefResponse = await fetch("./prefectures.json");
-        return await prefResponse.json();
+    async getPref() {
+        const getpref = await fetch("./prefectures.json");
+        return await getpref.json();
     }
 
-    async getCities(prefCode) {
-        const cityResponse = await fetch(`./cities/${prefCode}.json`);
-        return await cityResponse.json();
+    async getCity(code) {
+        const getcity = await fetch(`./cities/${code}.json`);
+        return await getcity.json();
     }
 
     async updatePref() {
-        this.prefectures = await this.getPrefs();
-        this.prefCode = this.prefectures[0].code;
-        this.createPrefOptionHtml();
+        this.Preflist = await this.getPref();
+        this.PrefCode = this.Preflist[0].code;
+        this.CreatePref();
     }
 
     async updateCity() {
-        this.cities = await this.getCities(this.prefCode);
-        this.createCityOptionHtml();
+        this.Citylist = await this.getCity(this.PrefCode);
+        this.CreateCity();
     }
 
-    createPrefOptionHtml() {
-        const prefSelctorElm = this.rootElm.querySelector(".prefectures");
-        prefSelctorElm.innerHTML = this.toOptionsHtml(this.prefectures);
-
-        prefSelctorElm.addEventListener("change",(event)=>{
-            this.prefCode = event.target.value;
+    CreatePref() {
+        const Preftag = this.rootElm.querySelector(".prefectures");
+        Preftag.innerHTML = this.option(this.Preflist);
+        
+        Preftag.addEventListener("change",(event)=>{
+            this.PrefCode = event.target.value;
             this.updateCity();
         });
     }
 
-    createCityOptionHtml() {
-        const citySelectorElm = this.rootElm.querySelector(".cities");
-        citySelectorElm.innerHTML = this.toOptionsHtml(this.cities);
+    CreateCity() {
+        const Citytag = this.rootElm.querySelector(".cities");
+        Citytag.innerHTML = this.option(this.Citylist);
     }
 
-    toOptionsHtml(records) {
+    option(records) {
         return records.map((record)=>{
-            return`
-            <option name="${record.name}" value="${record.code}">
+            return `
+            <option value="${record.code}" name="${record.name}">
             ${record.name}
             </option>
             `;
         }).join("");
-    } 
+    }
 }
 
 const areaSelector = new AreaSelector(document.getElementById("areaSelector"));
