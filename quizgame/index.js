@@ -1,191 +1,146 @@
 class WordQuiz {
+
     constructor(rootElm) {
         this.rootElm = rootElm;
-
-        this.gameStatus ={};
-        this.resetGame();
+        this.levelstep = 1;
+        this.nowlevel = "level1";
+        this.answerpoint = 0;
+        this.settimer = null;
     }
 
     async init() {
-        await this.fetchQuizData();
-        this.displaStartView();
-    }
-    
-    async fetchQuizData() {
-      try {
-        const response = await fetch("./quiz.json");
-        this.quizData = await response.json();
-      } catch (e) {
-        this.rootElm.innerText = "問題の読み込みに失敗しました";
-        console.log(e);
-      }
+        await this.getjson();
+        this.startgamen();
     }
 
-    isLastStep() {
-        const currentQuetstions = this.quizData[this.gameStatus.level];
-        return this.gameStatus.step === Object.keys(currentQuetstions).length;
-    }
-
-    nextStep() {
-        this.clearTimer();
-        this.addResult();
-        if(this.isLastStep()) {
-            this.displayResultView();
-        }else{
-            this.gameStatus.step++;
-            this.displayQuestionView();
+    async getjson() {
+        try {
+        const json = await fetch("./quiz.json");
+        this.quizData = await json.json();
+        } catch(e) {
+            this.rootElm.innerText = "通信失敗";
+            console.log(e);
         }
     }
 
-    addResult() {
-        const checkedElm = this.rootElm.querySelector('input[name="choice"]:checked');
-        const answer = checkedElm ? checkedElm.value:"";
-        const currentQuestion = this.quizData[this.gameStatus.level][`step${this.gameStatus.step}`];
-
-        this.gameStatus.results.push({
-            question:currentQuestion,
-            selectedAnswer:answer
-        });
+    resetdata() {
+        this.levelstep = 1;
+        this.nowlevel = "level1";
+        this.answerpoint = 0;
+        this.startgamen();
     }
 
-    calcScore() {
-        let correctNum = 0;
-        const results = this.gameStatus.results;
-
-        for(const result of results) {
-            const selected = result.selectedAnswer;
-            const correct = result.question.answer;
-            if(selected===correct) {
-                correctNum++;
-            }
+    startgamen() {
+        const level = Object.keys(this.quizData);
+        const levelList = [];
+        for(let i=0;i<level.length;i++)  {let list=`
+            <option value="${level[i]}" class="level">レベル${i+1}
+            </option>
+            `;
+            levelList.push(list);
         }
-        return Math.floor((correctNum/results.length)*100);
-    }
-
-    resetGame() {
-        this.gameStatus.level=null;
-        this.gameStatus.step = 1;
-        this.gameStatus.results=[];
-        this.gameStatus.timeLimit=0;
-        this.gameStatus.intervalKey = null;
-    }
-
-    setTimer() {
-        if(this.gameStatus.intervalKey !== null) {
-            throw new Error("taima-ugoiteu");
-        }
-        this.gameStatus.timeLimit = 10;
-        this.gameStatus.intervalKey = setInterval(()=>{
-            this.gameStatus.timeLimit--;
-        if(this.gameStatus.timeLimit===0) {
-            this.nextStep();
-        }else{
-            this.renderTimeLimitStr();
-        }
-        },1000);
-    }
-
-    clearTimer() {
-        clearInterval(this.gameStatus.intervalKey);
-        this.gameStatus.intervalKey=null;
-    }
-
-    displaStartView() {
-        const levelStrs = Object.keys(this.quizData);
-        this.gameStatus.level = levelStrs[0];
-        const optionStars = [];
-        for(let i=0;levelStrs.length>i;i++) {
-            optionStars.push(`<option value="${levelStrs[i]}" name="level">レベル${i+1}</option>`);
-        }
-        const html = `
-        <select class="levelSelector">
-        ${optionStars.join("")}
+        const html=`
+        <h1>クイズゲーム</h1>
+        <select class="levelSelect">
+        ${levelList}
         </select>
         <button class="startBtn">スタート</button>
         `
-        const parentElm = document.createElement("div");
-        parentElm.innerHTML = html;
+        this.changegamen(html);
 
-        const selectorElm = parentElm.querySelector(".levelSelector");
-        selectorElm.addEventListener("change",(event)=>{
-           this.gameStatus.level = event.target.value; 
+        const getlevel = this.rootElm.querySelector(".levelSelect");
+        getlevel.addEventListener("change",(event)=>{
+            this.nowlevel = event.target.value;
         });
 
-        const startBtnElm = parentElm.querySelector(".startBtn");
-        startBtnElm.addEventListener("click",()=>{
-            this.displayQuestionView();
+        const startBtn = this.rootElm.querySelector(".startBtn");
+        startBtn.addEventListener("click",()=>{
+            this.questiongamen();
         });
-
-        this.replaceView(parentElm);
     }
 
-    displayQuestionView() {
-        console.log(`レベル：${this.gameStatus.level}`);
-        this.setTimer();
-        const stepKey = `step${this.gameStatus.step}`;
-        const currentQuetstion = this.quizData[this.gameStatus.level][stepKey];
+    questiongamen() {
+        const word = this.quizData[this.nowlevel][`step${this.levelstep}`]["word"];
+        const choices = this.quizData[this.nowlevel][`step${this.levelstep}`]["choices"];
+        let choicelist = [];
+        let count = 10;
 
-        const choiceStrs = [];
-        for(const choice of currentQuetstion.choices) {
-            choiceStrs.push(`<label>
-            <input type="radio" name="choice" value="${choice}"/>
-            ${choice}
-            </label>
-            `);
+        for(let choice of choices) {let list=
+        `<input type="radio" name="list" value="${choice}">${choice}</input>`;
+        choicelist.push(list);
         }
 
+        this.settimer = setInterval(() => {
+            this.time = this.rootElm.querySelector(".time");
+            count--;
+            if(count!==undefined) {
+            this.time.innerText = `制限時間${count}秒`;
+            }
+            if(count===0) {
+                this.nexthantei();
+            }
+        }, 1000);
+
         const html = `
-            <p>${currentQuetstion.word}</p>
-            <div>
-            ${choiceStrs.join("")}
-            </div>
-            <div class="actions">
-            <button class="nextBtn">解答する</button>
-            </div>
-            <p class="sec">残り解答時間:${this.gameStatus.timeLimit}秒</p>
+        <p>${word}</p>
+        <div class="answer">
+        ${choicelist.join("")}
+        </div>
+        <button class="nextbtn">回答する</button>
+        <div class="time">制限時間10秒</div>
         `;
 
-        const parentElm = document.createElement("div");
-        parentElm.className = "question";
-        parentElm.innerHTML = html;
+        this.changegamen(html);
 
-        const nextBtnElm = parentElm.querySelector(".nextBtn");
-        nextBtnElm.addEventListener("click",()=>{
-            this.nextStep();
+        const next = this.rootElm.querySelector(".nextbtn");
+        const kaitou = this.rootElm.querySelector(".answer");
+
+        kaitou.addEventListener("change",(event)=>{
+            this.answer = event.target.value;
         });
 
-
-        this.replaceView(parentElm);
+        next.addEventListener("click",()=>{
+            this.nexthantei();
+        });
     }
 
-    renderTimeLimitStr() {
-        const secElm = this.rootElm.querySelector(".sec");
-        secElm.innerText=`残り時間:${this.gameStatus.timeLimit}秒`;
+    nexthantei() {
+        clearInterval(this.settimer);
+        this.answerkeisan(this.answer);
+        const object = Object.keys(this.quizData[this.nowlevel]);
+        this.maxlength = object.length;
+        if(this.levelstep!==this.maxlength) {
+            this.levelstep++;
+            this.questiongamen();
+        }else{
+            this.answergamen();
+        }
     }
 
-    displayResultView() {
-        const score = this.calcScore();
-        const html = `
-        <p>ゲーム終了</p>
-        <p>正解率：${score}%</p>
-        <button class="resetBtn">開始画面に戻る</button>
+    answerkeisan(kekka) {
+        const answer = this.quizData[this.nowlevel][`step${this.levelstep}`]["answer"];
+        if(kekka===answer) {
+            this.answerpoint++;
+        }
+        this.answerkekka = (this.answerpoint/this.maxlength)*100;
+    }
+
+    answergamen() {
+        const html =`
+        <h1>ゲーム終了</h1>
+        <p>正答率${this.answerkekka}%</P>
+        <button class="lastbtn">開始画面に戻る</button>
         `;
-
-        const parentElm = document.createElement("div");
-        parentElm.className = "results";
-        parentElm.innerHTML = html;
-        const resetBtnElm = parentElm.querySelector(".resetBtn");
-        resetBtnElm.addEventListener("click",()=>{
-            this.resetGame();
-            this.displaStartView();
+        this.changegamen(html);
+        const last = this.rootElm.querySelector(".lastbtn");
+        last.addEventListener("click",()=>{
+            this.resetdata();
         });
-
-        this.replaceView(parentElm);
     }
 
-    replaceView(elm) {
+    changegamen(elm) {
         this.rootElm.innerHTML = "";
-        this.rootElm.appendChild(elm);
+        this.rootElm.innerHTML = elm;
     }
 
 }
