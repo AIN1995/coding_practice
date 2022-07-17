@@ -10,13 +10,8 @@
 </head>
 <body>
     <div id="app">
-       <table border="1">
-        <tr><th>商品コード</th><th>商品名</th></tr>
-        <tr v-for="item in list" v-bind:key="item.code">
-            <td>{{item.code}}</td><td>{{item.name}}</td>
-        </tr>
-
-       </table>
+       <input type="text" v-on:input="yearInputHandler" v-bind:value="year"><br>
+       {{year}}
     </div>
     <script src="main.js"></script>
 </body>

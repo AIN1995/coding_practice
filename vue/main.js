@@ -1,22 +1,20 @@
 const app = Vue.createApp({
     data() {
         return {
-            list:[
-                {code:"A01",name:"プロA"},
-                {code:"A02",name:"プロB"},
-                {code:"A03",name:"プロC"}
-            ]
+          year:777
         }
     },
     methods: {
-
+        yearInputHandler($event) {
+            this.year = $event.target.value;
+        }
     },
     computed: {
-
+ 
     },
     watch: {
-
-    }
+      
+    } 
 });
 
 const ball = app.mount("#app");
