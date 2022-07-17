@@ -10,8 +10,13 @@
 </head>
 <body>
     <div id="app">
-       <input type="text" v-on:input="yearInputHandler" v-bind:value="year"><br>
-       {{year}}
+       <button v-on:click="show = !show">切り替え</button>
+       <transition>
+        <p v-if="show">
+            ねこです
+        </p>
+       </transition>
+     
     </div>
     <script src="main.js"></script>
 </body>

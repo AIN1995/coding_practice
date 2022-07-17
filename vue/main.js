@@ -1,16 +1,14 @@
 const app = Vue.createApp({
     data() {
         return {
-          year:777
+           show:true
         }
     },
     methods: {
-        yearInputHandler($event) {
-            this.year = $event.target.value;
-        }
+       
     },
     computed: {
- 
+     
     },
     watch: {
       
