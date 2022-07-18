@@ -1,76 +1,45 @@
-const app = document.getElementById("app");
+const main = document.getElementById("main");
+const check = main.querySelectorAll('input[type="checkbox"]');
+const product = Array.from(main.querySelectorAll(".product"));
 
-const check = app.querySelectorAll('input[type="checkbox"]');
+check[0].addEventListener("change",onCheck,false);
+check[1].addEventListener("change",onCheck,false);
 
-check[0].addEventListener("change",onCheckChanged,false);
-check[1].addEventListener("change",onCheckChanged,false);
+function onCheck(event) {
+    const list = main.querySelector(".search_resault");
 
-const order = app.querySelector(".search_order");
-order.addEventListener("change",onOrderChanged,false);
-
-function onCheckChanged(event) {
-    const nodeCount = app.querySelector(".search_count");
-    const products = Array.from(app.querySelectorAll(".product"));
-
-    const filteredList = products.filter(function(item) {
-      let show = true;
-      if(check[0].checked) {
-        if(!isSale(item)) {
-            show = false;
+    const fil = product.filter(function(item){
+        let show = true;
+        if(check[0].checked) {
+            if(!issale(item)) {
+                show = false;
+            }
         }
-      }
-      if(check[1].checked) {
-        if(!isFreeShipping(item)) {
-            show = false;
+        if(check[1].checked) {
+            if(!istel(item)) {
+                show = false;
+            }
         }
-      }
-
-      setDisplay(item,show);
-      return show
-});
-    nodeCount.textContent = filteredList.length+"件";
+        setShow(item,show)
+        return show;
+    });
+    list.innerText = fil.length+"個";
 }
 
-function isSale(item) {
-    const node = item.querySelector(".product_status");
-    return (node && node.textContent === "SALE");
+function issale(item) {
+    const sale = item.querySelector(".product_sale");
+    return (sale && sale.innerText==="SALE");
 }
 
-function isFreeShipping(item) {
-    const node = item.querySelector(".product_shipping");
-    return (node && node.textContent === "送料無料");
+function istel(item) {
+    const tel = item.querySelector(".product_tel");
+    return (tel && tel.textContent==="送料無料");
 }
 
-function setDisplay(node,show) {
+function setShow(item,show) {
     if(show) {
-        node.setAttribute("style","display:block");
-    }else {
-        node.setAttribute("style","display:none");
+        item.setAttribute("style","display:block");
+    }else{
+        item.setAttribute("style","display:none");
     }
-}
-
-function onOrderChanged(event) {
-    const nodeList = app.querySelector(".products");
-    const products = Array.from(app.querySelectorAll(".product"));
-
-    products.sort(function(a,b){
-        if(event.target.value=="1") {
-            return parseInt(a.getAttribute("id")) - parseInt(b.getAttribute("id"));
-        }
-        
-         else if(event.target.value=="2") {
-            const price1 = parseInt(a.querySelector(".product_price span").textContent.replace(",",""));
-            const price2 = parseInt(b.querySelector(".product_price span").textContent.replace(",",""));
-            return price1 - price2;
-        }
-    });
-
-    while(nodeList.firstChild) {
-        nodeList.removeChild(nodeList.firstChild);
-    }
-
-    products.forEach(function(item){
-        nodeList.appendChild(item);
-    });
-
 }
