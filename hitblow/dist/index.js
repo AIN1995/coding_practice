@@ -52,19 +52,81 @@ var promptInput = function (text) { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); };
+var HitAndBlow = /** @class */ (function () {
+    function HitAndBlow() {
+        this.answerSource = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        this.answer = [];
+        this.tryCount = 0;
+    }
+    HitAndBlow.prototype.setting = function () {
+        var answerLength = 3;
+        while (this.answer.length < answerLength) {
+            var randNum = Math.floor(Math.random() * this.answerSource.length);
+            var selectedItem = this.answerSource[randNum];
+            if (!this.answer.includes(selectedItem)) {
+                this.answer.push(selectedItem);
+            }
+        }
+    };
+    HitAndBlow.prototype.play = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var inputArr, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, promptInput("[,]区切りで3つの数字入力")];
+                    case 1:
+                        inputArr = (_a.sent()).split(",");
+                        result = this.check(inputArr);
+                        if (!(result.hit !== this.answer.length)) return [3 /*break*/, 3];
+                        printLine("---\nHit:".concat(result.hit, "\nBlow:").concat(result.blow, "\n---"));
+                        this.tryCount += 1;
+                        return [4 /*yield*/, this.play()];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        this.tryCount += 1;
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    HitAndBlow.prototype.check = function (input) {
+        var _this = this;
+        var hitcount = 0;
+        var blowcount = 0;
+        input.forEach(function (val, index) {
+            if (val === _this.answer[index]) {
+                hitcount += 1;
+            }
+            else if (_this.answer.includes(val)) {
+                blowcount += 1;
+            }
+        });
+        return {
+            hit: hitcount,
+            blow: blowcount
+        };
+    };
+    HitAndBlow.prototype.end = function () {
+        printLine("\u4E16\u754C\u3067\u3059\n\u8A66\u884C\u56DE\u6570:".concat(this.tryCount, "\u56DE"));
+        process.exit();
+    };
+    return HitAndBlow;
+}());
+;
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var name, age;
+    var hitAndBlow;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, promptInput("名前入力")];
+            case 0:
+                hitAndBlow = new HitAndBlow();
+                hitAndBlow.setting();
+                return [4 /*yield*/, hitAndBlow.play()];
             case 1:
-                name = _a.sent();
-                console.log(name);
-                return [4 /*yield*/, promptInput("歳を入力")];
-            case 2:
-                age = _a.sent();
-                console.log(age);
-                process.exit();
+                _a.sent();
+                hitAndBlow.end();
                 return [2 /*return*/];
         }
     });

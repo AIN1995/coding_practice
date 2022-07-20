@@ -8,10 +8,67 @@ const promptInput = async(text:string)=>{
   return input.trim();
 }
 
+class HitAndBlow {
+ private readonly answerSource = ["0","1","2","3","4","5","6","7","8","9"];
+ private answer:string[] = [];
+ private tryCount = 0;
+
+  setting() {
+   const answerLength = 3;
+
+   while(this.answer.length<answerLength) {
+    const randNum = Math.floor(Math.random()*this.answerSource.length);
+    const selectedItem = this.answerSource[randNum];
+    if(!this.answer.includes(selectedItem)) {
+      this.answer.push(selectedItem);
+    }
+   }
+  }
+
+  async play() {
+    const inputArr = (await promptInput("[,]区切りで3つの数字入力")).split(",");
+    const result = this.check(inputArr);
+
+    if(result.hit !== this.answer.length) {
+      printLine(`---\nHit:${result.hit}\nBlow:${result.blow}\n---`);
+      this.tryCount += 1;
+      await this.play();
+    }else {
+      this.tryCount += 1;
+    }
+  }
+
+  private check(input:string[]) {
+    let hitcount = 0;
+    let blowcount = 0;
+
+    input.forEach((val,index)=>{
+      if(val===this.answer[index]) {
+        hitcount += 1;
+      }else if(this.answer.includes(val)) {
+        blowcount += 1;
+      }
+    });
+
+    return {
+      hit:hitcount,
+      blow:blowcount
+    }
+  }
+  end() {
+    printLine(`世界です\n試行回数:${this.tryCount}回`);
+    process.exit();
+  }
+}
+
 ;(async()=>{
-  const name = await promptInput("名前入力");
-  console.log(name);
-  const age = await promptInput("歳を入力");
-  console.log(age);
-  process.exit();
+  const hitAndBlow = new HitAndBlow()
+  hitAndBlow.setting();
+  await hitAndBlow.play();
+  hitAndBlow.end();
 })();
+
+
+
+
+
