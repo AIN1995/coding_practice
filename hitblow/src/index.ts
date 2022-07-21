@@ -1,20 +1,44 @@
+const modes = ["normal","hard"] as const;
+type Mode = typeof modes[number];
+
 const printLine = (text:string,breakLine:boolean=true) =>{
   process.stdout.write(text+(breakLine?"\n":""));
 }
 
 const promptInput = async(text:string)=>{
   printLine(`\n${text}\n`,false);
-  const input:string = await new Promise((resolve)=>process.stdin.once("data",(data)=>resolve(data.toString())));
+  return readLine();
+}
+
+const readLine = async ()=>{
+  const input:String = await new Promise((resolve)=>process.stdin.once("data",(data)=>resolve(data.toString())));
   return input.trim();
+}
+
+const promptSelect = async <T extends String>(text:string,values:readonly T[]):Promise<T>=>{
+  printLine(`\n${text}`);
+  values.forEach((value)=>{
+    printLine(`- ${value}`);
+  });
+  printLine("> ",false);
+
+  const input = await readLine() as T;
+  if(values.includes(input)) {
+    return input;
+  }else {
+    return promptSelect<T>(text,values);
+  }
 }
 
 class HitAndBlow {
  private readonly answerSource = ["0","1","2","3","4","5","6","7","8","9"];
  private answer:string[] = [];
  private tryCount = 0;
+ private mode: Mode = "normal";
 
-  setting() {
-   const answerLength = 3;
+  async setting() {
+   this.mode = await promptSelect<Mode>("モードを入力してください",modes);
+   const answerLength = this.getAnswerLength();
 
    while(this.answer.length<answerLength) {
     const randNum = Math.floor(Math.random()*this.answerSource.length);
@@ -26,7 +50,15 @@ class HitAndBlow {
   }
 
   async play() {
-    const inputArr = (await promptInput("[,]区切りで3つの数字入力")).split(",");
+    const answerLength = this.getAnswerLength();
+    const inputArr = (await promptInput(`[,]区切りで${answerLength}つの数字入力"`)).split(",");
+
+    if(!this.validate(inputArr)) {
+      printLine("無効な入力");
+      await this.play();
+      return
+    }
+
     const result = this.check(inputArr);
 
     if(result.hit !== this.answer.length) {
@@ -59,11 +91,30 @@ class HitAndBlow {
     printLine(`世界です\n試行回数:${this.tryCount}回`);
     process.exit();
   }
+
+  private validate(inputArr: string[]) {
+    const isLengthValid = inputArr.length === this.answer.length;
+    const isAllAnswerSourceOption = inputArr.every((val)=> this.answerSource.includes(val));
+    const isAllDifferentValues = inputArr.every((val,i)=>inputArr.indexOf(val)===i);
+    return isLengthValid && isAllAnswerSourceOption && isAllDifferentValues;
+  }
+
+  private getAnswerLength() {
+    switch(this.mode) {
+      case "normal":
+        return 3;
+      case "hard" :
+        return 4
+      default:
+        throw new Error(`${this.mode}は無効な入力です`);
+    }
+  }
+
 }
 
 ;(async()=>{
-  const hitAndBlow = new HitAndBlow()
-  hitAndBlow.setting();
+  const hitAndBlow = new HitAndBlow();
+  await hitAndBlow.setting();
   await hitAndBlow.play();
   hitAndBlow.end();
 })();

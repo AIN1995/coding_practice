@@ -35,20 +35,48 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var modes = ["normal", "hard"];
 var printLine = function (text, breakLine) {
     if (breakLine === void 0) { breakLine = true; }
     process.stdout.write(text + (breakLine ? "\n" : ""));
 };
 var promptInput = function (text) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        printLine("\n".concat(text, "\n"), false);
+        return [2 /*return*/, readLine()];
+    });
+}); };
+var readLine = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var input;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, new Promise(function (resolve) { return process.stdin.once("data", function (data) { return resolve(data.toString()); }); })];
+            case 1:
+                input = _a.sent();
+                return [2 /*return*/, input.trim()];
+        }
+    });
+}); };
+var promptSelect = function (text, values) { return __awaiter(void 0, void 0, void 0, function () {
     var input;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                printLine("\n".concat(text, "\n"), false);
-                return [4 /*yield*/, new Promise(function (resolve) { return process.stdin.once("data", function (data) { return resolve(data.toString()); }); })];
+                printLine("\n".concat(text));
+                values.forEach(function (value) {
+                    printLine("- ".concat(value));
+                });
+                printLine("> ", false);
+                return [4 /*yield*/, readLine()];
             case 1:
                 input = _a.sent();
-                return [2 /*return*/, input.trim()];
+                if (values.includes(input)) {
+                    return [2 /*return*/, input];
+                }
+                else {
+                    return [2 /*return*/, promptSelect(text, values)];
+                }
+                return [2 /*return*/];
         }
     });
 }); };
@@ -57,37 +85,60 @@ var HitAndBlow = /** @class */ (function () {
         this.answerSource = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
         this.answer = [];
         this.tryCount = 0;
+        this.mode = "normal";
     }
     HitAndBlow.prototype.setting = function () {
-        var answerLength = 3;
-        while (this.answer.length < answerLength) {
-            var randNum = Math.floor(Math.random() * this.answerSource.length);
-            var selectedItem = this.answerSource[randNum];
-            if (!this.answer.includes(selectedItem)) {
-                this.answer.push(selectedItem);
-            }
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, answerLength, randNum, selectedItem;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _a = this;
+                        return [4 /*yield*/, promptSelect("モードを入力してください", modes)];
+                    case 1:
+                        _a.mode = _b.sent();
+                        answerLength = this.getAnswerLength();
+                        while (this.answer.length < answerLength) {
+                            randNum = Math.floor(Math.random() * this.answerSource.length);
+                            selectedItem = this.answerSource[randNum];
+                            if (!this.answer.includes(selectedItem)) {
+                                this.answer.push(selectedItem);
+                            }
+                        }
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     HitAndBlow.prototype.play = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var inputArr, result;
+            var answerLength, inputArr, result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, promptInput("[,]区切りで3つの数字入力")];
+                    case 0:
+                        answerLength = this.getAnswerLength();
+                        return [4 /*yield*/, promptInput("[,]\u533A\u5207\u308A\u3067".concat(answerLength, "\u3064\u306E\u6570\u5B57\u5165\u529B\""))];
                     case 1:
                         inputArr = (_a.sent()).split(",");
-                        result = this.check(inputArr);
-                        if (!(result.hit !== this.answer.length)) return [3 /*break*/, 3];
-                        printLine("---\nHit:".concat(result.hit, "\nBlow:").concat(result.blow, "\n---"));
-                        this.tryCount += 1;
+                        if (!!this.validate(inputArr)) return [3 /*break*/, 3];
+                        printLine("無効な入力");
                         return [4 /*yield*/, this.play()];
                     case 2:
                         _a.sent();
-                        return [3 /*break*/, 4];
+                        return [2 /*return*/];
                     case 3:
+                        result = this.check(inputArr);
+                        if (!(result.hit !== this.answer.length)) return [3 /*break*/, 5];
+                        printLine("---\nHit:".concat(result.hit, "\nBlow:").concat(result.blow, "\n---"));
                         this.tryCount += 1;
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        return [4 /*yield*/, this.play()];
+                    case 4:
+                        _a.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        this.tryCount += 1;
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -113,6 +164,23 @@ var HitAndBlow = /** @class */ (function () {
         printLine("\u4E16\u754C\u3067\u3059\n\u8A66\u884C\u56DE\u6570:".concat(this.tryCount, "\u56DE"));
         process.exit();
     };
+    HitAndBlow.prototype.validate = function (inputArr) {
+        var _this = this;
+        var isLengthValid = inputArr.length === this.answer.length;
+        var isAllAnswerSourceOption = inputArr.every(function (val) { return _this.answerSource.includes(val); });
+        var isAllDifferentValues = inputArr.every(function (val, i) { return inputArr.indexOf(val) === i; });
+        return isLengthValid && isAllAnswerSourceOption && isAllDifferentValues;
+    };
+    HitAndBlow.prototype.getAnswerLength = function () {
+        switch (this.mode) {
+            case "normal":
+                return 3;
+            case "hard":
+                return 4;
+            default:
+                throw new Error("".concat(this.mode, "\u306F\u7121\u52B9\u306A\u5165\u529B\u3067\u3059"));
+        }
+    };
     return HitAndBlow;
 }());
 ;
@@ -122,9 +190,11 @@ var HitAndBlow = /** @class */ (function () {
         switch (_a.label) {
             case 0:
                 hitAndBlow = new HitAndBlow();
-                hitAndBlow.setting();
-                return [4 /*yield*/, hitAndBlow.play()];
+                return [4 /*yield*/, hitAndBlow.setting()];
             case 1:
+                _a.sent();
+                return [4 /*yield*/, hitAndBlow.play()];
+            case 2:
                 _a.sent();
                 hitAndBlow.end();
                 return [2 /*return*/];
