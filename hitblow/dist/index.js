@@ -79,7 +79,7 @@ var promptSelect = function (text, values) { return __awaiter(void 0, void 0, vo
         }
     });
 }); };
-var nextActions = ['play again', 'exit'];
+var nextActions = ['play again', "change game", 'exit'];
 var gameTitles = ["hit and blow", "janken"];
 var GameProcedure = /** @class */ (function () {
     function GameProcedure(gamemode) {
@@ -141,8 +141,17 @@ var GameProcedure = /** @class */ (function () {
                         return [4 /*yield*/, this.play()];
                     case 4:
                         _a.sent();
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 9];
                     case 5:
+                        if (!(action === "change game")) return [3 /*break*/, 8];
+                        return [4 /*yield*/, this.select()];
+                    case 6:
+                        _a.sent();
+                        return [4 /*yield*/, this.play()];
+                    case 7:
+                        _a.sent();
+                        return [3 /*break*/, 9];
+                    case 8:
                         if (action === 'exit') {
                             this.end();
                         }
@@ -150,8 +159,8 @@ var GameProcedure = /** @class */ (function () {
                             neverValue = action;
                             throw new Error("".concat(neverValue, " is an invalid action."));
                         }
-                        _a.label = 6;
-                    case 6: return [2 /*return*/];
+                        _a.label = 9;
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -161,6 +170,11 @@ var GameProcedure = /** @class */ (function () {
         process.exit();
     };
     return GameProcedure;
+}());
+var Game = /** @class */ (function () {
+    function Game() {
+    }
+    return Game;
 }());
 var modes = ['normal', 'hard'];
 var HitAndBlow = /** @class */ (function () {

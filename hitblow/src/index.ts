@@ -27,19 +27,18 @@ const printLine = (text: string, breakLine: boolean = true) => {
     }
   }
   
-  const nextActions = ['play again', 'exit'] as const;
+  const nextActions = ['play again',"change game",'exit'] as const;
   type NextAction = typeof nextActions[number];
   const gameTitles = ["hit and blow","janken"] as const;
   type GameTitle = typeof gameTitles[number];
 
   type Gamemode = {
-    "hit and blow":HitAndBlow,
-    "janken":Janken
+   [key in GameTitle]:Game;
   }
 
   class GameProcedure {
     private currentGameTitle:GameTitle | ""="";
-    private currentGame:HitAndBlow | Janken | null=null;
+    private currentGame:Game | null=null;
 
     constructor(private readonly gamemode:Gamemode){}
   
@@ -63,7 +62,10 @@ const printLine = (text: string, breakLine: boolean = true) => {
       const action = await promptSelect<NextAction>('ゲームを続けますか？', nextActions)
       if (action === 'play again') {
         await this.play()
-      } else if (action === 'exit') {
+      }else if (action === "change game") {
+        await this.select();
+        await this.play();
+      }else if (action === 'exit') {
         this.end()
       } else {
         const neverValue: never = action
@@ -76,11 +78,17 @@ const printLine = (text: string, breakLine: boolean = true) => {
       process.exit()
     }
   }
+
+  abstract class Game {
+    abstract setting():Promise<void>;
+    abstract play():Promise<void>;
+    abstract end():void;
+  }
   
   const modes = ['normal', 'hard'] as const
   type Mode = typeof modes[number]
   
-  class HitAndBlow {
+  class HitAndBlow implements Game {
     private readonly answerSource = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     private answer: string[] = []
     private tryCount = 0
@@ -173,7 +181,7 @@ const printLine = (text: string, breakLine: boolean = true) => {
   const jankenOptions = ['rock', 'paper', 'scissors'] as const
   type JankenOption = typeof jankenOptions[number]
   
-  class Janken {
+  class Janken implements Game {
     private rounds = 0
     private currentRound = 1
     private result = {
